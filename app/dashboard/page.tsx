@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, useEffect, FormEvent } from "react";
 import Link from "next/link";
 
 type TipoMovimiento = "ingreso" | "gasto";
@@ -15,42 +15,34 @@ interface Movimiento {
 }
 
 export default function DashboardPage() {
-  const [movimientos, setMovimientos] = useState<Movimiento[]>([
-    {
-      id: 1,
-      titulo: "Salario / Ingreso base",
-      monto: 3000000,
-      tipo: "ingreso",
-      categoria: "Ingresos",
-      fecha: "20 Nov",
-    },
-    {
-      id: 2,
-      titulo: "Mercado y alimentación",
-      monto: 320000,
-      tipo: "gasto",
-      categoria: "Alimentación",
-      fecha: "21 Nov",
-    },
-    {
-      id: 3,
-      titulo: "Servicios e internet",
-      monto: 230000,
-      tipo: "gasto",
-      categoria: "Hogar",
-      fecha: "22 Nov",
-    },
-  ]);
+  const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
+  const [cargando, setCargando] = useState(true);
 
   const [presupuestoMensual, setPresupuestoMensual] = useState<number>(1200000);
   const [metaAhorro, setMetaAhorro] = useState<number>(2000000);
   const [ahorroActual, setAhorroActual] = useState<number>(850000);
 
-  // Estado del formulario
   const [titulo, setTitulo] = useState("");
   const [monto, setMonto] = useState("");
   const [tipo, setTipo] = useState<TipoMovimiento>("gasto");
   const [categoria, setCategoria] = useState("Alimentación");
+
+  useEffect(() => {
+    async function cargarMovimientos() {
+      try {
+        const res = await fetch("/api/movements", { cache: "no-store" });
+        if (res.ok) {
+          const data = await res.json();
+          setMovimientos(data);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setCargando(false);
+      }
+    }
+    cargarMovimientos();
+  }, []);
 
   const totalIngresos = movimientos
     .filter((m) => m.tipo === "ingreso")
@@ -72,7 +64,6 @@ export default function DashboardPage() {
     Math.round((ahorroActual / (metaAhorro || 1)) * 100)
   );
 
-  // Agrupación de gastos por categoría para estadísticas
   const gastosPorCategoria = movimientos
     .filter((m) => m.tipo === "gasto")
     .reduce<Record<string, number>>((acc, m) => {
@@ -80,32 +71,40 @@ export default function DashboardPage() {
       return acc;
     }, {});
 
-  function agregarMovimiento(e: FormEvent) {
+  async function agregarMovimiento(e: FormEvent) {
     e.preventDefault();
     const valor = Number(monto);
     if (!titulo.trim() || isNaN(valor) || valor <= 0) return;
 
-    const nuevo: Movimiento = {
-      id: Date.now(),
-      titulo: titulo.trim(),
-      monto: valor,
-      tipo,
-      categoria: tipo === "ingreso" ? "Ingresos" : categoria,
-      fecha: "Hoy",
-    };
+    const res = await fetch("/api/movements", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        titulo: titulo.trim(),
+        monto: valor,
+        tipo,
+        categoria: tipo === "ingreso" ? "Ingresos" : categoria,
+        fecha: "Hoy",
+      }),
+    });
 
-    setMovimientos((prev) => [nuevo, ...prev]);
-    setTitulo("");
-    setMonto("");
+    if (res.ok) {
+      const creado: Movimiento = await res.json();
+      setMovimientos((prev) => [creado, ...prev]);
+      setTitulo("");
+      setMonto("");
+    }
   }
 
-  function eliminarMovimiento(id: number) {
-    setMovimientos((prev) => prev.filter((m) => m.id !== id));
+  async function eliminarMovimiento(id: number) {
+    const res = await fetch(`/api/movements?id=${id}`, { method: "DELETE" });
+    if (res.ok) {
+      setMovimientos((prev) => prev.filter((m) => m.id !== id));
+    }
   }
 
   return (
     <div className="min-h-screen bg-[#F7F9F7] text-[#0F172A]">
-      {/* Barra superior estilo FinanSmart */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-bold text-[#0D8A38]">
@@ -129,7 +128,6 @@ export default function DashboardPage() {
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-8 space-y-8">
-        {/* Encabezado de sección */}
         <section className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
             <p className="text-sm font-semibold text-[#0D8A38]">
@@ -144,7 +142,6 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* 1. Resumen Financiero (Tarjetas principales) */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
             <p className="text-sm text-slate-500">Saldo disponible</p>
@@ -177,9 +174,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* Bloque central: Registro + Presupuestos y Metas */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* 01. Control de ingresos y gastos (Formulario) */}
           <div className="lg:col-span-5 bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
             <div>
               <span className="text-xs font-bold text-[#0D8A38]">01</span>
@@ -265,9 +260,7 @@ export default function DashboardPage() {
             </form>
           </div>
 
-          {/* 02 y 04. Presupuestos mensuales & Metas de ahorro */}
           <div className="lg:col-span-7 grid grid-cols-1 gap-6">
-            {/* Presupuesto mensual */}
             <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -322,7 +315,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Metas de ahorro */}
             <div className="bg-[#EEFAF0]/70 rounded-2xl p-6 border border-emerald-100 space-y-4">
               <div className="flex items-start justify-between gap-4">
                 <div>
@@ -384,9 +376,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* 03. Estadísticas financieras + Historial reciente */}
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* Estadísticas financieras */}
           <div className="lg:col-span-5 bg-white rounded-2xl p-6 border border-gray-100 shadow-sm space-y-5">
             <div>
               <span className="text-xs font-bold text-[#0D8A38]">03</span>
@@ -398,7 +388,6 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            {/* Barras comparativas Ingresos vs Gastos */}
             <div className="space-y-3">
               <div>
                 <div className="flex justify-between text-xs mb-1">
@@ -445,7 +434,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Desglose por categoría */}
             <div className="pt-3 border-t border-gray-100 space-y-2.5">
               <p className="text-xs font-semibold text-slate-600">
                 Gastos por categoría
@@ -478,7 +466,6 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Movimientos recientes */}
           <div className="lg:col-span-7 bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -494,7 +481,11 @@ export default function DashboardPage() {
               </span>
             </div>
 
-            {movimientos.length === 0 ? (
+            {cargando ? (
+              <p className="text-sm text-slate-400 py-8 text-center">
+                Cargando movimientos...
+              </p>
+            ) : movimientos.length === 0 ? (
               <p className="text-sm text-slate-400 py-8 text-center">
                 No hay movimientos registrados todavía.
               </p>
