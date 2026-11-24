@@ -4,36 +4,36 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-type Usuario = { nombre: string; email: string; password: string };
-
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
-    const usuarios: Usuario[] = JSON.parse(
-      localStorage.getItem("usuarios") ?? "[]"
-    );
+    try {
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
 
-    const usuario = usuarios.find(
-      (u) => u.email === email && u.password === password
-    );
-
-    if (!usuario) {
-      setError("Correo o contraseña incorrectos.");
-      return;
+      if (!res.ok) {
+        setError(data.error ?? "No se pudo iniciar sesión.");
+        return;
+      }
+      router.push("/dashboard");
+    } catch {
+      setError("No se pudo conectar con el servidor.");
+    } finally {
+      setLoading(false);
     }
-
-    localStorage.setItem(
-      "sesion",
-      JSON.stringify({ nombre: usuario.nombre, email: usuario.email })
-    );
-    router.push("/dashboard");
   }
 
   return (
@@ -65,14 +65,15 @@ export default function LoginPage() {
 
         <button
           type="submit"
-          className="bg-green-600 hover:bg-green-700 rounded p-2 font-semibold"
+          disabled={loading}
+          className="bg-green-600 hover:bg-green-700 disabled:opacity-50 rounded p-2 font-semibold"
         >
-          Entrar
+          {loading ? "Entrando..." : "Entrar"}
         </button>
 
         <p className="text-sm text-center">
           ¿No tienes cuenta?{" "}
-          <Link href="/registro" className="underline">
+          <Link href="/register" className="underline">
             Regístrate
           </Link>
         </p>
