@@ -4,17 +4,16 @@ import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-type Usuario = { nombre: string; email: string; password: string };
-
-export default function RegistroPage() {
+export default function RegisterPage() {
   const router = useRouter();
-  const [nombre, setNombre] = useState("");
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmar, setConfirmar] = useState("");
+  const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
 
@@ -22,23 +21,30 @@ export default function RegistroPage() {
       setError("La contraseña debe tener al menos 6 caracteres.");
       return;
     }
-    if (password !== confirmar) {
+    if (password !== confirm) {
       setError("Las contraseñas no coinciden.");
       return;
     }
 
-    const usuarios: Usuario[] = JSON.parse(
-      localStorage.getItem("usuarios") ?? "[]"
-    );
+    setLoading(true);
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+      const data = await res.json();
 
-    if (usuarios.some((u) => u.email === email)) {
-      setError("Ya existe una cuenta con ese correo.");
-      return;
+      if (!res.ok) {
+        setError(data.error ?? "No se pudo crear la cuenta.");
+        return;
+      }
+      router.push("/login");
+    } catch {
+      setError("No se pudo conectar con el servidor.");
+    } finally {
+      setLoading(false);
     }
-
-    usuarios.push({ nombre, email, password });
-    localStorage.setItem("usuarios", JSON.stringify(usuarios));
-    router.push("/login");
   }
 
   return (
@@ -52,8 +58,8 @@ export default function RegistroPage() {
         <input
           type="text"
           placeholder="Nombre"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
           required
           className="border border-gray-600 rounded p-2 bg-transparent"
         />
@@ -76,8 +82,8 @@ export default function RegistroPage() {
         <input
           type="password"
           placeholder="Confirmar contraseña"
-          value={confirmar}
-          onChange={(e) => setConfirmar(e.target.value)}
+          value={confirm}
+          onChange={(e) => setConfirm(e.target.value)}
           required
           className="border border-gray-600 rounded p-2 bg-transparent"
         />
@@ -86,9 +92,10 @@ export default function RegistroPage() {
 
         <button
           type="submit"
-          className="bg-green-600 hover:bg-green-700 rounded p-2 font-semibold"
+          disabled={loading}
+          className="bg-green-600 hover:bg-green-700 disabled:opacity-50 rounded p-2 font-semibold"
         >
-          Registrarme
+          {loading ? "Creando cuenta..." : "Registrarme"}
         </button>
 
         <p className="text-sm text-center">
