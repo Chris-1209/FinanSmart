@@ -32,6 +32,10 @@ export default function Navbar() {
           <Link href="#nosotros" className="hover:text-green-700">
             Nosotros
           </Link>
+
+          <Link href="#preguntas" className="hover:text-green-700">
+            Preguntas
+          </Link>
         </div>
 
         {/* Botón para computadora */}
@@ -78,6 +82,14 @@ export default function Navbar() {
             className="text-gray-700 hover:text-green-700"
           >
             Nosotros
+          </Link>
+
+          <Link
+            href="#preguntas"
+            onClick={() => setMenuOpen(false)}
+            className="text-gray-700 hover:text-green-700"
+          >
+            Preguntas
           </Link>
 
           <Link
