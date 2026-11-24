@@ -39,7 +39,6 @@ export default function Navbar() {
         </div>
 
         {/* Botón para computadora */}
-        
         <div className="hidden md:flex items-center gap-3">
           <Link
             href="/login"
@@ -117,7 +116,6 @@ export default function Navbar() {
           >
             Crear cuenta
           </Link>
-    
         </div>
       )}
     </nav>
