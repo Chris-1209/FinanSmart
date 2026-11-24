@@ -5,28 +5,28 @@ import { useCallback, useEffect, useId, useRef, useState } from "react";
 const steps = [
   {
     number: "01",
-    icon: "🔐",
+    icon: "",
     title: "Crea tu cuenta",
     description:
       "Regístrate e inicia sesión para acceder a tu espacio personal en FinanSmart.",
   },
   {
     number: "02",
-    icon: "💰",
+    icon: "",
     title: "Registra tus movimientos",
     description:
       "Agrega tus ingresos y gastos para conocer cómo administras tu dinero.",
   },
   {
     number: "03",
-    icon: "📊",
+    icon: "",
     title: "Define tus presupuestos",
     description:
       "Organiza tu dinero mes a mes con presupuestos y controla tus gastos.",
   },
   {
     number: "04",
-    icon: "🎯",
+    icon: "",
     title: "Crea tus metas de ahorro",
     description:
       "Establece objetivos, consulta tus estadísticas y sigue tu progreso.",
