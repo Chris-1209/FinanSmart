@@ -1,6 +1,7 @@
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import Features from "../components/Features";
+import Benefits from "../components/Benefits";
 import About from "../components/About";
 import CallToAction from "../components/CallToAction";
 import Footer from "../components/Footer";
@@ -11,6 +12,7 @@ export default function Home() {
       <Navbar />
       <Hero />
       <Features />
+      <Benefits />
       <About />
       <CallToAction />
       <Footer />

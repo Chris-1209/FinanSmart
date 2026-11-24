@@ -54,7 +54,7 @@ export default function Features() {
           {features.map((feature) => (
             <div
               key={feature.number}
-              className="p-6 rounded-2xl border border-gray-200 hover:shadow-lg hover:border-green-300 transition"
+              className="p-7 rounded-2xl border border-gray-200 bg-white hover:shadow-xl hover:border-green-400 hover:-translate-y-1 transition duration-300"
             >
               <span className="text-4xl">{feature.icon}</span>
 
