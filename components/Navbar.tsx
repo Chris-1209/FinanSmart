@@ -28,10 +28,10 @@ export default function Navbar() {
 
         {/* Botón */}
         <Link
-          href="#contacto"
+          href="#funciones"
           className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 transition"
         >
-          Comenzar
+          Explorar
         </Link>
 
       </div>
