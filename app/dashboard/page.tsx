@@ -14,6 +14,20 @@ interface Movimiento {
   fecha: string;
 }
 
+const STORAGE_KEYS = {
+  presupuesto: "finansmart_presupuesto_mensual",
+  meta: "finansmart_meta_ahorro",
+  ahorro: "finansmart_ahorro_actual",
+};
+
+const COLORES_CATEGORIA: Record<string, string> = {
+  Alimentación: "#0D8A38",
+  Transporte: "#16A34A",
+  Hogar: "#2563EB",
+  Educación: "#D97706",
+  Entretenimiento: "#9333EA",
+};
+
 export default function DashboardPage() {
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -21,12 +35,49 @@ export default function DashboardPage() {
   const [presupuestoMensual, setPresupuestoMensual] = useState<number>(1200000);
   const [metaAhorro, setMetaAhorro] = useState<number>(2000000);
   const [ahorroActual, setAhorroActual] = useState<number>(850000);
+  const [preferenciasListas, setPreferenciasListas] = useState(false);
 
   const [titulo, setTitulo] = useState("");
   const [monto, setMonto] = useState("");
   const [tipo, setTipo] = useState<TipoMovimiento>("gasto");
   const [categoria, setCategoria] = useState("Alimentación");
 
+  // Cargar preferencias guardadas en localStorage
+  useEffect(() => {
+    try {
+      const savedPresupuesto = localStorage.getItem(STORAGE_KEYS.presupuesto);
+      const savedMeta = localStorage.getItem(STORAGE_KEYS.meta);
+      const savedAhorro = localStorage.getItem(STORAGE_KEYS.ahorro);
+
+      if (savedPresupuesto !== null && !isNaN(Number(savedPresupuesto))) {
+        setPresupuestoMensual(Number(savedPresupuesto));
+      }
+      if (savedMeta !== null && !isNaN(Number(savedMeta))) {
+        setMetaAhorro(Number(savedMeta));
+      }
+      if (savedAhorro !== null && !isNaN(Number(savedAhorro))) {
+        setAhorroActual(Number(savedAhorro));
+      }
+    } catch (err) {
+      console.error("Error leyendo localStorage:", err);
+    } finally {
+      setPreferenciasListas(true);
+    }
+  }, []);
+
+  // Guardar cambios de presupuesto y metas en localStorage
+  useEffect(() => {
+    if (!preferenciasListas) return;
+    try {
+      localStorage.setItem(STORAGE_KEYS.presupuesto, String(presupuestoMensual));
+      localStorage.setItem(STORAGE_KEYS.meta, String(metaAhorro));
+      localStorage.setItem(STORAGE_KEYS.ahorro, String(ahorroActual));
+    } catch (err) {
+      console.error("Error guardando en localStorage:", err);
+    }
+  }, [presupuestoMensual, metaAhorro, ahorroActual, preferenciasListas]);
+
+  // Cargar movimientos desde PostgreSQL vía API
   useEffect(() => {
     async function cargarMovimientos() {
       try {
@@ -70,6 +121,13 @@ export default function DashboardPage() {
       acc[m.categoria] = (acc[m.categoria] || 0) + m.monto;
       return acc;
     }, {});
+
+  const entradasCategoria = Object.entries(gastosPorCategoria);
+
+  // Datos para gráfico de dona de gastos por categoría
+  const radio = 42;
+  const circunferencia = 2 * Math.PI * radio;
+  let acumuladoOffset = 0;
 
   async function agregarMovimiento(e: FormEvent) {
     e.preventDefault();
@@ -384,7 +442,7 @@ export default function DashboardPage() {
                 Estadísticas financieras
               </h2>
               <p className="text-xs text-slate-500">
-                Comparativa general y distribución de gastos por categoría.
+                Comparativa general y distribución gráfica de gastos por categoría.
               </p>
             </div>
 
@@ -434,34 +492,86 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            <div className="pt-3 border-t border-gray-100 space-y-2.5">
+            {/* Gráfico de dona + desglose por categoría */}
+            <div className="pt-3 border-t border-gray-100 space-y-3">
               <p className="text-xs font-semibold text-slate-600">
-                Gastos por categoría
+                Distribución de gastos por categoría
               </p>
-              {Object.keys(gastosPorCategoria).length === 0 ? (
+
+              {entradasCategoria.length === 0 || totalGastos === 0 ? (
                 <p className="text-xs text-slate-400">
                   Aún no hay gastos registrados.
                 </p>
               ) : (
-                Object.entries(gastosPorCategoria).map(([cat, valor]) => {
-                  const pct = Math.round((valor / (totalGastos || 1)) * 100);
-                  return (
-                    <div key={cat} className="space-y-1">
-                      <div className="flex justify-between text-xs">
-                        <span className="text-slate-600">{cat}</span>
-                        <span className="font-medium text-slate-800">
-                          ${valor.toLocaleString("es-CO")} ({pct}%)
-                        </span>
-                      </div>
-                      <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-emerald-500 rounded-full"
-                          style={{ width: `${pct}%` }}
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <svg
+                    viewBox="0 0 110 110"
+                    className="w-28 h-28 shrink-0 -rotate-90"
+                    aria-label="Gráfico de gastos por categoría"
+                  >
+                    <circle
+                      cx="55"
+                      cy="55"
+                      r={radio}
+                      fill="transparent"
+                      stroke="#F1F5F9"
+                      strokeWidth="14"
+                    />
+                    {entradasCategoria.map(([cat, valor]) => {
+                      const proporcion = valor / totalGastos;
+                      const longitudSegmento = proporcion * circunferencia;
+                      const offsetActual = -acumuladoOffset;
+                      acumuladoOffset += longitudSegmento;
+                      const color = COLORES_CATEGORIA[cat] || "#10B981";
+
+                      return (
+                        <circle
+                          key={cat}
+                          cx="55"
+                          cy="55"
+                          r={radio}
+                          fill="transparent"
+                          stroke={color}
+                          strokeWidth="14"
+                          strokeDasharray={`${longitudSegmento} ${circunferencia}`}
+                          strokeDashoffset={offsetActual}
                         />
-                      </div>
-                    </div>
-                  );
-                })
+                      );
+                    })}
+                  </svg>
+
+                  <div className="w-full space-y-2">
+                    {entradasCategoria.map(([cat, valor]) => {
+                      const pct = Math.round((valor / totalGastos) * 100);
+                      const color = COLORES_CATEGORIA[cat] || "#10B981";
+                      return (
+                        <div key={cat} className="space-y-1">
+                          <div className="flex justify-between text-xs">
+                            <span className="flex items-center gap-1.5 text-slate-600">
+                              <span
+                                className="w-2.5 h-2.5 rounded-full inline-block"
+                                style={{ backgroundColor: color }}
+                              />
+                              {cat}
+                            </span>
+                            <span className="font-medium text-slate-800">
+                              ${valor.toLocaleString("es-CO")} ({pct}%)
+                            </span>
+                          </div>
+                          <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full rounded-full"
+                              style={{
+                                width: `${pct}%`,
+                                backgroundColor: color,
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               )}
             </div>
           </div>
