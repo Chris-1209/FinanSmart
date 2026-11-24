@@ -39,12 +39,22 @@ export default function Navbar() {
         </div>
 
         {/* Botón para computadora */}
-        <Link
-          href="#funciones"
-          className="hidden md:block bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 transition"
-        >
-          Explorar
-        </Link>
+        
+        <div className="hidden md:flex items-center gap-3">
+          <Link
+            href="/login"
+            className="text-green-700 font-medium px-4 py-2 hover:text-green-900 transition"
+          >
+            Iniciar sesión
+          </Link>
+
+          <Link
+            href="/register"
+            className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 transition"
+          >
+            Crear cuenta
+          </Link>
+        </div>
 
         {/* Botón del menú móvil */}
         <button
@@ -93,12 +103,21 @@ export default function Navbar() {
           </Link>
 
           <Link
-            href="#funciones"
+            href="/login"
             onClick={() => setMenuOpen(false)}
-            className="bg-green-700 text-white text-center py-2 rounded-lg"
+            className="text-gray-700 hover:text-green-700"
           >
-            Explorar
+            Iniciar sesión
           </Link>
+
+          <Link
+            href="/register"
+            onClick={() => setMenuOpen(false)}
+            className="bg-green-700 text-white text-center py-2 rounded-lg hover:bg-green-800 transition"
+          >
+            Crear cuenta
+          </Link>
+    
         </div>
       )}
     </nav>
