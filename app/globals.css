@@ -7,3 +7,11 @@
   --color-background: #F7F9F7;
   --color-surface: #FFFFFF;
 }
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+}

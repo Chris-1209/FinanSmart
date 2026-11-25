@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 💸 FinanSmart
 
-## Getting Started
+**Take control of your money from a single place.**
 
-First, run the development server:
+> 🌐 **Website:** [https://www.finansmart.app](https://www.finansmart.app)
+>
+> 🚀 **Project Type:** Personal Finance Management SaaS Platform.
+>
+> 📌 **Status:** Functional MVP in Production.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📖 About the Project
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**FinanSmart** is a personal finance management web application designed to help students, young adults, freelancers, and working professionals organize and better understand their finances without needing advanced accounting knowledge.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Through a simple, visual, and intuitive web interface, each user can log into their personal account and centralize their daily money management to avoid disorganized spending and make it easier to achieve financial goals.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## ✨ What Does the Platform Offer?
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Based on the core pillars of the product, **FinanSmart** integrates:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **💰 Income & Expense Tracking:** Recording and deleting transactions linked to each user account, specifying the amount, date, category, and description.
+- **📊 Monthly Budgets:** Setting monthly spending limits with percentage tracking and visual consumption alerts.
+- **📈 Financial Statistics:** Charts and visual summaries comparing income versus expenses and breaking down spending by category (*food, transportation, housing, education, and entertainment*).
+- **🎯 Savings Goals:** Setting financial targets with real-time tracking of the accumulated amount and percentage reached.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📸 Web Preview
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Main Screen & Financial Summary
+![FinanSmart Home](./public/hero-preview.png)
+
+### Financial Dashboard & Tools
+![FinanSmart Features](./public/features-preview.png)
+
+---
+
+## 🧭 Platform Sections
+
+| Section | Purpose Within the Platform |
+| :--- | :--- |
+| **Home** | Main presentation featuring a preview of the financial summary (*available balance, income, and expenses*) and quick access links. |
+| **Features** | Detailed showcase of the 4 key tools for financial organization and goal tracking. |
+| **Sign Up & Login** | Account creation and login with persistent user session management. |
+| **Financial Dashboard** | Private workspace where each user manages their transactions, budgets, category charts, and savings goals. |
+
+---
+
+## 🏗️ Architecture & Technologies
+
+The **FinanSmart** tech ecosystem is built on a modern cloud web architecture:
+
+- **Frontend:** *Next.js* (App Router), *React*, *TypeScript*, and *Tailwind CSS* for a dynamic and responsive interface.
+- **Backend & API:** *Next.js Route Handlers* on *Node.js* with session-based authentication (`bcryptjs` and `httpOnly` cookies).
+- **Database:** *PostgreSQL* on **Amazon RDS** via `pg` for relational storage of users, sessions, and account-isolated financial transactions.
+- **Infrastructure & Deployment:** Custom domain with SSL (`www.finansmart.app`) and continuous cloud deployment.
+
+---
+
+## 👥 Development Team
+
+| Member | GitHub |
+| :--- | :--- |
+| Christian Gabriel Buitrón Mendoza | [@Chris-1209](https://github.com/Chris-1209) |
+| Melissa Prins Sánchez | [@molywii](https://github.com/molywii) |
+| Juan Carlos Saucedo Álvarez | [@LilRocket2303](https://github.com/LilRocket2303) |
+| Edwin Alcendra | [@dokylol2](https://github.com/dokylol2) |
+
+---
+
+## 📬 Contact
+
+Have feedback or suggestions about **FinanSmart**? Feel free to reach out at **christianbuitron@outlook.com** or through the team's GitHub profiles.
+
+---
