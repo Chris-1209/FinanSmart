@@ -1,6 +1,6 @@
 
 import Link from "next/link";
-
+import TutorialModal from "./TutorialModal";
 export default function Hero() {
   return (
     <section className="bg-gradient-to-b from-green-50 to-white py-20">
@@ -36,6 +36,7 @@ export default function Hero() {
             >
               Conócenos
             </Link>
+            <TutorialModal />
           </div>
         </div>
 

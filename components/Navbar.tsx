@@ -32,28 +32,15 @@ export default function Navbar() {
           <Link href="#nosotros" className="hover:text-green-700">
             Nosotros
           </Link>
-
-          <Link href="#preguntas" className="hover:text-green-700">
-            Preguntas
-          </Link>
         </div>
 
         {/* Botón para computadora */}
-        <div className="hidden md:flex items-center gap-3">
-          <Link
-            href="/login"
-            className="text-green-700 font-medium px-4 py-2 hover:text-green-900 transition"
-          >
-            Iniciar sesión
-          </Link>
-
-          <Link
-            href="/register"
-            className="bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 transition"
-          >
-            Crear cuenta
-          </Link>
-        </div>
+        <Link
+          href="#funciones"
+          className="hidden md:block bg-green-700 text-white px-5 py-2 rounded-lg hover:bg-green-800 transition"
+        >
+          Explorar
+        </Link>
 
         {/* Botón del menú móvil */}
         <button
@@ -94,27 +81,11 @@ export default function Navbar() {
           </Link>
 
           <Link
-            href="#preguntas"
+            href="#funciones"
             onClick={() => setMenuOpen(false)}
-            className="text-gray-700 hover:text-green-700"
+            className="bg-green-700 text-white text-center py-2 rounded-lg"
           >
-            Preguntas
-          </Link>
-
-          <Link
-            href="/login"
-            onClick={() => setMenuOpen(false)}
-            className="text-gray-700 hover:text-green-700"
-          >
-            Iniciar sesión
-          </Link>
-
-          <Link
-            href="/register"
-            onClick={() => setMenuOpen(false)}
-            className="bg-green-700 text-white text-center py-2 rounded-lg hover:bg-green-800 transition"
-          >
-            Crear cuenta
+            Explorar
           </Link>
         </div>
       )}

@@ -16,10 +16,10 @@ export default function CallToAction() {
         </p>
 
         <Link
-          href="/register"
+          href="#funciones"
           className="inline-block mt-8 bg-white text-green-800 font-semibold px-8 py-3 rounded-lg hover:bg-green-50 transition"
         >
-          Crear cuenta
+          Explorar funciones
         </Link>
 
       </div>
