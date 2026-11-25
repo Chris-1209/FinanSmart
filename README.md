@@ -65,9 +65,9 @@ The **FinanSmart** tech ecosystem is built on a modern cloud web architecture:
 
 | Member | GitHub |
 | :--- | :--- |
-| Christian Gabriel Buitrón Mendoza | [@Chris-1209](https://github.com/Chris-1209) |
-| Melissa Prins Sánchez | [@molywii](https://github.com/molywii) |
-| Juan Carlos Saucedo Álvarez | [@LilRocket2303](https://github.com/LilRocket2303) |
+| Christian Buitrón | [@Chris-1209](https://github.com/Chris-1209) |
+| Melissa Prins | [@molywii](https://github.com/molywii) |
+| Juan Saucedo | [@LilRocket2303](https://github.com/LilRocket2303) |
 | Edwin Alcendra | [@dokylol2](https://github.com/dokylol2) |
 
 ---
