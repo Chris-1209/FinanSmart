@@ -32,7 +32,7 @@ const features = [
 
 export default function Features() {
   return (
-    <section id="funciones" className="py-20 bg-white">
+    <section id="funciones" className="scroll-mt-24 py-20 bg-white">
       <div className="max-w-7xl mx-auto px-6">
 
         <div className="text-center max-w-2xl mx-auto">
