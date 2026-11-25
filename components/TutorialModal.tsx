@@ -2,6 +2,11 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 
+/**
+ * Botón "Cómo usar FinanSmart" y modal con los pasos rápidos
+ * y la información de que FinanSmart es un SaaS de pago.
+ * Se usa en Hero.tsx como <TutorialModal />.
+ */
 const steps = [
   {
     number: "01",
