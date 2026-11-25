@@ -29,6 +29,7 @@ const COLORES_CATEGORIA: Record<string, string> = {
 };
 
 export default function DashboardPage() {
+  const [userId, setUserId] = useState<number | null>(null);
   const [movimientos, setMovimientos] = useState<Movimiento[]>([]);
   const [cargando, setCargando] = useState(true);
 
@@ -42,12 +43,40 @@ export default function DashboardPage() {
   const [tipo, setTipo] = useState<TipoMovimiento>("gasto");
   const [categoria, setCategoria] = useState("Alimentación");
 
-  // Cargar preferencias guardadas en localStorage
+  // 1. Cargar movimientos y userId autenticado desde PostgreSQL
   useEffect(() => {
+    async function cargarMovimientos() {
+      try {
+        const res = await fetch("/api/movements", { cache: "no-store" });
+        if (res.status === 401) {
+          window.location.href = "/login";
+          return;
+        }
+        if (res.ok) {
+          const data = await res.json();
+          setUserId(data.userId);
+          setMovimientos(data.movements || []);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setCargando(false);
+      }
+    }
+    cargarMovimientos();
+  }, []);
+
+  // 2. Cargar presupuesto y metas guardadas para este usuario
+  useEffect(() => {
+    if (!userId) return;
     try {
-      const savedPresupuesto = localStorage.getItem(STORAGE_KEYS.presupuesto);
-      const savedMeta = localStorage.getItem(STORAGE_KEYS.meta);
-      const savedAhorro = localStorage.getItem(STORAGE_KEYS.ahorro);
+      const savedPresupuesto = localStorage.getItem(
+        `${STORAGE_KEYS.presupuesto}_${userId}`
+      );
+      const savedMeta = localStorage.getItem(`${STORAGE_KEYS.meta}_${userId}`);
+      const savedAhorro = localStorage.getItem(
+        `${STORAGE_KEYS.ahorro}_${userId}`
+      );
 
       if (savedPresupuesto !== null && !isNaN(Number(savedPresupuesto))) {
         setPresupuestoMensual(Number(savedPresupuesto));
@@ -63,45 +92,33 @@ export default function DashboardPage() {
     } finally {
       setPreferenciasListas(true);
     }
-  }, []);
+  }, [userId]);
 
-  // Guardar cambios de presupuesto y metas en localStorage
+  // 3. Guardar cambios de presupuesto y metas para este usuario
   useEffect(() => {
-    if (!preferenciasListas) return;
+    if (!preferenciasListas || !userId) return;
     try {
-      localStorage.setItem(STORAGE_KEYS.presupuesto, String(presupuestoMensual));
-      localStorage.setItem(STORAGE_KEYS.meta, String(metaAhorro));
-      localStorage.setItem(STORAGE_KEYS.ahorro, String(ahorroActual));
+      localStorage.setItem(
+        `${STORAGE_KEYS.presupuesto}_${userId}`,
+        String(presupuestoMensual)
+      );
+      localStorage.setItem(`${STORAGE_KEYS.meta}_${userId}`, String(metaAhorro));
+      localStorage.setItem(
+        `${STORAGE_KEYS.ahorro}_${userId}`,
+        String(ahorroActual)
+      );
     } catch (err) {
       console.error("Error guardando en localStorage:", err);
     }
-  }, [presupuestoMensual, metaAhorro, ahorroActual, preferenciasListas]);
-
-  // Cargar movimientos desde PostgreSQL vía API
-  useEffect(() => {
-    async function cargarMovimientos() {
-      try {
-        const res = await fetch("/api/movements", { cache: "no-store" });
-        if (res.ok) {
-          const data = await res.json();
-          setMovimientos(data);
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setCargando(false);
-      }
-    }
-    cargarMovimientos();
-  }, []);
+  }, [presupuestoMensual, metaAhorro, ahorroActual, preferenciasListas, userId]);
 
   const totalIngresos = movimientos
     .filter((m) => m.tipo === "ingreso")
-    .reduce((acc, m) => acc + m.monto, 0);
+    .reduce((acc, m) => acc + Number(m.monto), 0);
 
   const totalGastos = movimientos
     .filter((m) => m.tipo === "gasto")
-    .reduce((acc, m) => acc + m.monto, 0);
+    .reduce((acc, m) => acc + Number(m.monto), 0);
 
   const balance = totalIngresos - totalGastos;
 
@@ -118,13 +135,12 @@ export default function DashboardPage() {
   const gastosPorCategoria = movimientos
     .filter((m) => m.tipo === "gasto")
     .reduce<Record<string, number>>((acc, m) => {
-      acc[m.categoria] = (acc[m.categoria] || 0) + m.monto;
+      acc[m.categoria] = (acc[m.categoria] || 0) + Number(m.monto);
       return acc;
     }, {});
 
   const entradasCategoria = Object.entries(gastosPorCategoria);
 
-  // Datos para gráfico de dona de gastos por categoría
   const radio = 42;
   const circunferencia = 2 * Math.PI * radio;
   let acumuladoOffset = 0;
@@ -492,7 +508,6 @@ export default function DashboardPage() {
               </div>
             </div>
 
-            {/* Gráfico de dona + desglose por categoría */}
             <div className="pt-3 border-t border-gray-100 space-y-3">
               <p className="text-xs font-semibold text-slate-600">
                 Distribución de gastos por categoría
@@ -631,7 +646,7 @@ export default function DashboardPage() {
                         }`}
                       >
                         {m.tipo === "ingreso" ? "+" : "-"}$
-                        {m.monto.toLocaleString("es-CO")}
+                        {Number(m.monto).toLocaleString("es-CO")}
                       </span>
                       <button
                         type="button"

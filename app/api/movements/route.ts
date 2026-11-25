@@ -1,59 +1,119 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import pool from "@/lib/db-dashboard";
+import { getAuthenticatedUserId } from "@/lib/auth-user";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
-    const { rows } = await pool.query(
-      "SELECT id, titulo, monto::float AS monto, tipo, categoria, fecha FROM movements ORDER BY id DESC"
-    );
-    return NextResponse.json(rows);
-  } catch (error) {
-    console.error("GET /api/movements error:", error);
-    return NextResponse.json({ error: "Error al cargar movimientos" }, { status: 500 });
-  }
-}
-
-export async function POST(req: Request) {
-  try {
-    const body = await req.json();
-    const titulo = String(body.titulo || "").trim();
-    const monto = Number(body.monto);
-    const tipo = body.tipo === "ingreso" ? "ingreso" : "gasto";
-    const categoria =
-      tipo === "ingreso" ? "Ingresos" : String(body.categoria || "Alimentación").trim();
-    const fecha = String(body.fecha || "Hoy").trim();
-
-    if (!titulo || isNaN(monto) || monto <= 0) {
-      return NextResponse.json({ error: "Datos inválidos" }, { status: 400 });
+    const userId = await getAuthenticatedUserId(req);
+    if (!userId) {
+      return NextResponse.json(
+        { error: "No autenticado" },
+        { status: 401 }
+      );
     }
 
-    const { rows } = await pool.query(
-      `INSERT INTO movements (titulo, monto, tipo, categoria, fecha)
-       VALUES ($1, $2, $3, $4, $5)
-       RETURNING id, titulo, monto::float AS monto, tipo, categoria, fecha`,
-      [titulo, monto, tipo, categoria, fecha]
+    const result = await pool.query(
+      `SELECT id, user_id, titulo, monto, tipo, categoria, fecha
+       FROM movements
+       WHERE user_id = $1
+       ORDER BY id DESC`,
+      [userId]
     );
 
-    return NextResponse.json(rows[0], { status: 201 });
+    return NextResponse.json({
+      userId,
+      movements: result.rows,
+    });
   } catch (error) {
-    console.error("POST /api/movements error:", error);
-    return NextResponse.json({ error: "Error al guardar movimiento" }, { status: 500 });
+    console.error("Error en GET /api/movements:", error);
+    return NextResponse.json(
+      { error: "Error al obtener movimientos" },
+      { status: 500 }
+    );
   }
 }
 
-export async function DELETE(req: Request) {
+export async function POST(req: NextRequest) {
   try {
+    const userId = await getAuthenticatedUserId(req);
+    if (!userId) {
+      return NextResponse.json(
+        { error: "No autenticado" },
+        { status: 401 }
+      );
+    }
+
+    const body = await req.json();
+    const { titulo, monto, tipo, categoria, fecha } = body;
+
+    if (!titulo || typeof monto !== "number" || monto <= 0 || !tipo) {
+      return NextResponse.json(
+        { error: "Datos de movimiento inválidos" },
+        { status: 400 }
+      );
+    }
+
+    const result = await pool.query(
+      `INSERT INTO movements (user_id, titulo, monto, tipo, categoria, fecha)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING id, user_id, titulo, monto, tipo, categoria, fecha`,
+      [
+        userId,
+        titulo,
+        monto,
+        tipo,
+        categoria || "General",
+        fecha || new Date().toISOString().slice(0, 10),
+      ]
+    );
+
+    return NextResponse.json(result.rows[0], { status: 201 });
+  } catch (error) {
+    console.error("Error en POST /api/movements:", error);
+    return NextResponse.json(
+      { error: "Error al crear movimiento" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const userId = await getAuthenticatedUserId(req);
+    if (!userId) {
+      return NextResponse.json(
+        { error: "No autenticado" },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const id = Number(searchParams.get("id"));
 
-    if (!id || isNaN(id)) {
+    if (!id || Number.isNaN(id)) {
       return NextResponse.json({ error: "ID inválido" }, { status: 400 });
     }
 
-    await pool.query("DELETE FROM movements WHERE id = $1", [id]);
-    return NextResponse.json({ ok: true });
+    const result = await pool.query(
+      `DELETE FROM movements
+       WHERE id = $1 AND user_id = $2
+       RETURNING id`,
+      [id, userId]
+    );
+
+    if (result.rowCount === 0) {
+      return NextResponse.json(
+        { error: "Movimiento no encontrado o sin permiso" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ deleted: true, id });
   } catch (error) {
-    console.error("DELETE /api/movements error:", error);
-    return NextResponse.json({ error: "Error al eliminar movimiento" }, { status: 500 });
+    console.error("Error en DELETE /api/movements:", error);
+    return NextResponse.json(
+      { error: "Error al eliminar movimiento" },
+      { status: 500 }
+    );
   }
 }
